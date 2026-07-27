@@ -6,7 +6,7 @@ on:
       - .github/mobile-verify-trigger
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   viewport-regression:
@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -35,3 +37,13 @@ jobs:
 
       - name: Run viewport regression suite
         run: python tests/mobile_layout_test.py
+
+      - name: Record successful verification
+        run: |
+          mkdir -p verification
+          printf 'Mobile layout viewport suite passed for commit %s\n' "$GITHUB_SHA" > verification/mobile-layout-passed.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add verification/mobile-layout-passed.txt
+          git commit -m "Record mobile layout verification"
+          git push
